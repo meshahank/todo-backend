@@ -18,12 +18,13 @@ app.get("/todos", async (req, res) => {
 
 // POST a new todo
 app.post("/todos", async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, isCompleted = false } = req.body;
   const newTodo = await prisma.todo.create({
-    data: { title, description },
+    data: { title, description, isCompleted },
   });
   res.status(201).json(newTodo);
 });
+
 
 // UPDATE a todo
 app.put("/todos/:id", async (req, res) => {
@@ -45,3 +46,20 @@ app.delete("/todos/:id", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// PATCH a todo (e.g. toggle isCompleted)
+app.patch("/todos/:id", async (req, res) => {
+  const { id } = req.params;
+  const { isCompleted } = req.body;
+
+  try {
+    const updatedTodo = await prisma.todo.update({
+      where: { id: Number(id) },
+      data: { isCompleted },
+    });
+
+    res.json(updatedTodo);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update todo" });
+  }
+});
